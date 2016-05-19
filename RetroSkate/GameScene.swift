@@ -9,37 +9,91 @@
 import SpriteKit
 
 class GameScene: SKScene {
-    override func didMoveToView(view: SKView) {
-        /* Setup your scene here */
-        let myLabel = SKLabelNode(fontNamed:"Chalkduster")
-        myLabel.text = "Hello, World!"
-        myLabel.fontSize = 65
-        myLabel.position = CGPoint(x:CGRectGetMidX(self.frame), y:CGRectGetMidY(self.frame))
-        
-        self.addChild(myLabel)
-    }
     
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        /* Called when a touch begins */
-        
-        for touch in touches {
-            let location = touch.locationInNode(self)
-            
-            let sprite = SKSpriteNode(imageNamed:"Spaceship")
-            
-            sprite.xScale = 0.5
-            sprite.yScale = 0.5
-            sprite.position = location
-            
-            let action = SKAction.rotateByAngle(CGFloat(M_PI), duration:1)
-            
-            sprite.runAction(SKAction.repeatActionForever(action))
-            
-            self.addChild(sprite)
-        }
+    let ASP_PIECES = 15
+    let GROUND_SPEED: CGFloat = -8.5
+    let GROUND_X_RESET: CGFloat = -150
+    var asphaltPieces = [SKSpriteNode]()
+    var moveGroundAction: SKAction!
+    var moveGroundActionForever: SKAction!
+    
+    override func didMoveToView(view: SKView) {
+       setupBackground()
+        setupGround()
     }
    
     override func update(currentTime: CFTimeInterval) {
         /* Called before each frame is rendered */
+        
+        groundMovement()
+    }
+    
+    func setupBackground() {
+        let bg = SKSpriteNode(imageNamed: "bg1")
+        bg.position = CGPointMake(517, 400)
+        bg.zPosition = 3
+        self.addChild(bg)
+        
+        let bg2 = SKSpriteNode(imageNamed: "bg2")
+        bg2.position = CGPointMake(517, 450)
+        bg2.zPosition = 2
+        self.addChild(bg2)
+        
+        let bg3 = SKSpriteNode(imageNamed: "bg3")
+        bg3.position = CGPointMake(517, 500)
+        bg3.zPosition = 1
+        self.addChild(bg3)
+    }
+    
+    func setupGround() {
+        
+        moveGroundAction = SKAction.moveByX(GROUND_SPEED, y: 0, duration: 0.02)
+        moveGroundActionForever = SKAction.repeatActionForever(moveGroundAction)
+        
+        for var x = 0; x < ASP_PIECES; x++ {
+            let asp = SKSpriteNode(imageNamed: "asphalt")
+            asphaltPieces.append(asp)
+            
+            if x == 0 {
+                let start = CGPointMake(0, 144)
+                asp.position = start
+            }
+            else {
+                asp.position = CGPointMake(asp.size.width + asphaltPieces[x - 1].position.x, asphaltPieces[x - 1].position.y)
+            }
+            
+            asp.runAction(moveGroundActionForever)
+            self.addChild(asp)
+        }
+        
+    }
+    
+    func groundMovement() {
+        
+        for var x = 0; x < asphaltPieces.count; x++ {
+            
+            if asphaltPieces[x].position.x <= GROUND_X_RESET {
+                var index: Int!
+                
+                if x == 0 {
+                    index = asphaltPieces.count - 1
+                }
+                else {
+                    index = x - 1
+                }
+                
+                let newPos = CGPointMake(asphaltPieces[index].position.x + asphaltPieces[x].size.width, asphaltPieces[x].position.y)
+                
+                asphaltPieces[x].position = newPos
+            }
+        }
     }
 }
+
+
+
+
+
+
+
+
